@@ -208,7 +208,7 @@
 						 - Fixed several issues related to the Fallback Driver Package functionality where old code was left behind from the webservice days
 	4.2.1 - (2022-09-22) - Added support for Windows 10 22H2
 	4.2.2 - (2023-06-23) - Fixed Windows 10 22H2 missing switch value
-	4.2.3 - (2024-01-10) - Added support for Windows 11 23H2
+	4.2.3 - (2024-01-10) - Added initial support for Windows 11 23H2 and Alienware manufacturer (custom driver packages only)
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
@@ -320,7 +320,7 @@ param(
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer manufacturer when running in debug mode.")]
 	[ValidateNotNullOrEmpty()]
-	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac")]
+	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac")]
 	[string]$Manufacturer,
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer model when running in debug mode.")]
@@ -1159,6 +1159,13 @@ Process {
 			}
 			"*Dell*" {
 				$ComputerDetails.Manufacturer = "Dell"
+				$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
+				$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace "root\WMI").SystemSku.Trim()
+				[string]$OEMString = Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty OEMStringArray
+				$ComputerDetails.FallbackSKU = [regex]::Matches($OEMString, '\[\S*]')[0].Value.TrimStart("[").TrimEnd("]")
+			}
+			"*Alienware*" {
+				$ComputerDetails.Manufacturer = "Alienware"
 				$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
 				$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace "root\WMI").SystemSku.Trim()
 				[string]$OEMString = Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty OEMStringArray
