@@ -208,7 +208,10 @@
 						 - Fixed several issues related to the Fallback Driver Package functionality where old code was left behind from the webservice days
 	4.2.1 - (2022-09-22) - Added support for Windows 10 22H2
 	4.2.2 - (2023-06-23) - Fixed Windows 10 22H2 missing switch value
-	4.2.3 - (2024-01-10) - Added initial support for Windows 11 23H2 and Alienware manufacturer (custom driver packages only)
+	
+	Customizations
+	4.2.2.1 - (2024-01-10) - Added initial support for Windows 11 23H2
+	4.2.2.2 - (2024-01-10) - Added initial support for Alienware manufacturer (custom driver packages only)
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
