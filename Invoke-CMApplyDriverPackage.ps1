@@ -212,6 +212,7 @@
 	Customizations
 	4.2.2.1 - (2024-01-10) - Added initial support for Windows 11 23H2
 	4.2.2.2 - (2024-01-10) - Added initial support for Alienware manufacturer (custom driver packages only)
+	4.2.2.3 - (2024-01-11) - Added initial support for our VMware environment.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
@@ -323,7 +324,7 @@ param(
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer manufacturer when running in debug mode.")]
 	[ValidateNotNullOrEmpty()]
-	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac")]
+	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac", "VMware")]
 	[string]$Manufacturer,
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer model when running in debug mode.")]
@@ -1204,6 +1205,11 @@ Process {
 				$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
 				$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace root\WMI).BaseBoardProduct.Trim()
 			}
+            "*VMWare*" {
+  	        	$ComputerDetails.Manufacturer = "VMWare"
+				$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
+				$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace root\WMI).BaseBoardProduct.Trim()
+			}
 		}
 		
 		# Handle overriding computer details if debug mode and additional parameters was specified
@@ -1242,7 +1248,7 @@ Process {
 	
 	function Get-ComputerSystemType {
 		$ComputerSystemType = Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty "Model"
-		if ($ComputerSystemType -notin @("Virtual Machine", "VMware Virtual Platform", "VirtualBox", "HVM domU", "KVM", "VMWare7,1")) {
+		if ($ComputerSystemType -notin @("Virtual Machine", "VMware Virtual Platform", "VirtualBox", "HVM domU", "KVM")) {
 			Write-CMLogEntry -Value " - Supported computer platform detected, script execution allowed to continue" -Severity 1
 		}
 		else {
@@ -1250,7 +1256,7 @@ Process {
 				Write-CMLogEntry -Value " - Unsupported computer platform detected, virtual machines are not supported but will be allowed in DebugMode" -Severity 2
 			}
 			else {
-				Write-CMLogEntry -Value " - Unsupported computer platform detected, virtual machines are not supported" -Severity 3
+				Write-CMLogEntry -Value " - Unsupported computer platform detected, support for this virtual machine platform has not been patched in." -Severity 3
 				
 				# Throw terminating error				
 				$PSCmdlet.ThrowTerminatingError((New-TerminatingErrorRecord))
