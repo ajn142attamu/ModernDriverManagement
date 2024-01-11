@@ -213,6 +213,7 @@
 	4.2.2.1 - (2024-01-10) - Added initial support for Windows 11 23H2
 	4.2.2.2 - (2024-01-10) - Added initial support for Alienware manufacturer (custom driver packages only)
 	4.2.2.3 - (2024-01-11) - Added initial support for our VMware environment.
+	4.2.2.4 - (2024-01-11) - Added initial support for installing on Parallels on Intel Macs
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
@@ -324,7 +325,7 @@ param(
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer manufacturer when running in debug mode.")]
 	[ValidateNotNullOrEmpty()]
-	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac", "VMware")]
+	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac", "VMware", "Parallels")]
 	[string]$Manufacturer,
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer model when running in debug mode.")]
@@ -1210,6 +1211,11 @@ Process {
 				$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
 				$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace root\WMI).BaseBoardProduct.Trim()
 			}
+			"*Parallels*" {
+				$ComputerDetails.Manufacturer = "Parallels Software International Inc."
+			  	$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
+			  	$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace root\WMI).BaseBoardProduct.Trim()
+		  }
 		}
 		
 		# Handle overriding computer details if debug mode and additional parameters was specified
