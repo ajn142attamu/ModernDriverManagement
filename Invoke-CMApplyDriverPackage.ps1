@@ -214,6 +214,7 @@
 	4.2.2.2 - (2024-01-10) - Added initial support for Alienware manufacturer (custom driver packages only)
 	4.2.2.3 - (2024-01-11) - Added initial support for our VMware environment.
 	4.2.2.4 - (2024-01-11) - Added initial support for installing on Parallels on Intel Macs
+	4.2.2.5 - (2024-01-11) - Added initial support for installing on Hyper-V VMs
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
@@ -1254,7 +1255,7 @@ Process {
 	
 	function Get-ComputerSystemType {
 		$ComputerSystemType = Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty "Model"
-		if ($ComputerSystemType -notin @("Virtual Machine", "VMware Virtual Platform", "VirtualBox", "HVM domU", "KVM")) {
+		if ($ComputerSystemType -notin @("VMware Virtual Platform", "VirtualBox", "HVM domU", "KVM")) {
 			Write-CMLogEntry -Value " - Supported computer platform detected, script execution allowed to continue" -Severity 1
 		}
 		else {
