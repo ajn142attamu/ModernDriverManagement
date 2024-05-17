@@ -110,7 +110,7 @@
 	Author:      Nickolaj Andersen / Maurice Daly
     Contact:     @NickolajA / @MoDaly_IT
     Created:     2017-03-27
-    Updated:     2024-02-06
+    Updated:     2024-05-16
 	
 	Contributors: @CodyMathis123, @JamesMcwatty
     
@@ -216,6 +216,7 @@
 	4.2.2.3 - (2024-01-11) - Added initial support for our VMware environment.
 	4.2.2.4 - (2024-01-11) - Added initial support for installing on Parallels on Intel Macs
 	4.2.2.5 - (2024-01-11) - Added initial support for installing on Hyper-V VMs
+	4.2.2.6 - (2024-05-17) - Resolves issue with Microsoft products containing + in the name, requires corresponding changes to DriverAutomationTool from MSEndpointMgr to work
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
@@ -1233,6 +1234,15 @@ Process {
 			}
 		}
 		
+		# Replace any + characters in the Computer Details properties with _ to match changes made to the DAT.
+		foreach ($Property in $ComputerDetails.PSObject.Properties)
+		{
+			if ($Property.Value -match "\+") {
+				Write-CMLogEntry -Value " - A '+' character was found in $($Property.Name): '$($Property.Value)'. Replacing with '_' to prevent improper evaluation of -match statements." -Severity 1
+				$Property.Value = $Property.Value.Replace("+", "_")
+			}
+		}
+
 		# Handle output to log file for computer details
 		Write-CMLogEntry -Value " - Computer manufacturer determined as: $($ComputerDetails.Manufacturer)" -Severity 1
 		Write-CMLogEntry -Value " - Computer model determined as: $($ComputerDetails.Model)" -Severity 1
