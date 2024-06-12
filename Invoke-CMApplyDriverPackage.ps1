@@ -217,6 +217,7 @@
 	4.2.2.4 - (2024-01-11) - Added initial support for installing on Parallels on Intel Macs
 	4.2.2.5 - (2024-01-11) - Added initial support for installing on Hyper-V VMs
 	4.2.2.6 - (2024-05-17) - Resolves issue with Microsoft products containing + in the name, requires corresponding changes to DriverAutomationTool from MSEndpointMgr to work
+	4.2.2.7 - (2024-06-12) - Added initial support for installing on QEMU (Proxmox) VMs
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "BareMetal")]
 param(
@@ -328,7 +329,7 @@ param(
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer manufacturer when running in debug mode.")]
 	[ValidateNotNullOrEmpty()]
-	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac", "VMware", "Parallels")]
+	[ValidateSet("HP", "Hewlett-Packard", "Dell", "Alienware", "Lenovo", "Microsoft", "Fujitsu", "Panasonic", "Viglen", "AZW", "Getac", "VMware", "Parallels","QEMU")]
 	[string]$Manufacturer,
 	
 	[parameter(Mandatory = $false, ParameterSetName = "Debug", HelpMessage = "Override the automatically detected computer model when running in debug mode.")]
@@ -1218,7 +1219,13 @@ Process {
 				$ComputerDetails.Manufacturer = "Parallels Software International Inc."
 			  	$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
 			  	$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace root\WMI).BaseBoardProduct.Trim()
+		    }
+			"*QEMU*" {
+				$ComputerDetails.Manufacturer = "QEMU"
+			  	$ComputerDetails.Model = (Get-WmiObject -Class "Win32_ComputerSystem" | Select-Object -ExpandProperty Model).Trim()
+			  	$ComputerDetails.SystemSKU = (Get-CIMInstance -ClassName "MS_SystemInformation" -NameSpace root\WMI).SystemProductName.Trim()
 		  }
+
 		}
 		
 		# Handle overriding computer details if debug mode and additional parameters was specified
